@@ -90,9 +90,3 @@ The system uses **PostgreSQL** with the following tables:
 - **Risk threshold**: 0.6
 - The model is pre-trained and packaged within the Docker image (`data/models/isolation_forest_model.pkl`).
 
----
-
-##  Author
-
-**Đào Huy Phúc**  
-Security Engineer / Backend Developer
