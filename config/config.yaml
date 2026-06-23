@@ -1,0 +1,79 @@
+# ============================================================
+# AI-Powered IDS Configuration File
+# Đồ án IT3930 - Đào Huy Phúc - 20236051
+# ============================================================
+
+# ---- Linux Server (VirtualBox Host-Only Network) ----
+linux_server:
+  host: "192.168.1.14"            # <-- Điền IP VirtualBox của bạn
+  port: 22
+  username: "root"               # <-- SSH username
+  password: "phuc2028"           # <-- SSH password (hoặc để trống nếu dùng key)
+  ssh_key_path: ""               # <-- Đường dẫn private key (nếu có, VD: ~/.ssh/id_rsa)
+  log_file: "/var/log/secure"     # CentOS/RHEL dùng /var/log/secure
+  os_type: "centos"              # "ubuntu" hoặc "centos"
+
+# ---- Telegram Bot ----
+telegram:
+  bot_token: "7934865641:AAFa9AbnK09ndSSJpmBN0H1VB6zGGR3j89Q"
+  chat_id: "8936076432"
+  enabled: true                  # Đổi thành false để dùng mock
+
+# ---- Database (SQLite) ----
+database:
+  type: "postgres"
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "phuc"
+  dbname: "PRJ2_ids"
+  path: "data/ids_database.db" # Fallback if needed
+  # Nếu muốn dùng PostgreSQL thật:
+  # host: "localhost"
+  # port: 5432
+  # name: "ids_db"
+  # user: "postgres"
+  # password: "password"
+
+# ---- AI Model ----
+ai:
+  model_path: "data/isolation_forest_model.pkl"
+  contamination: 0.05        # Tỷ lệ dữ liệu bất thường dự kiến (5%)
+  risk_threshold: 0.6        # Ngưỡng risk_score để block IP (0.0 - 1.0)
+  retrain_interval_hours: 24 # Tái huấn luyện mô hình sau bao nhiêu giờ
+  min_training_samples: 50   # Số mẫu tối thiểu để huấn luyện
+
+# ---- Security Rules ----
+security_rules:
+  brute_force:
+    name: "Chặn Brute-force SSH"
+    max_failed_attempts: 5   # Chặn sau 5 lần đăng nhập sai
+    time_window_minutes: 10  # Trong vòng 10 phút
+  ddos:
+    name: "Chặn DDoS/Flood"
+    max_connections_per_minute: 100
+    time_window_minutes: 1
+
+# ---- Firewall ----
+firewall:
+  mode: "real"         # "simulation" hoặc "real" (real dùng iptables trên Linux)
+  block_duration_hours: 24   # Tự động mở khóa sau bao nhiêu giờ (0 = vĩnh viễn)
+  whitelist_ips:             # Danh sách IP không bao giờ bị block
+    - "127.0.0.1"
+    - "192.168.56.1"         # IP máy host Mac của bạn
+
+# ---- Reports ----
+reports:
+  output_dir: "data/reports"
+  generate_at: "23:59"       # Giờ xuất báo cáo hàng ngày (HH:MM)
+
+# ---- Web Dashboard ----
+dashboard:
+  host: "0.0.0.0"
+  port: 5001
+  debug: false
+
+# ---- Logging ----
+logging:
+  level: "INFO"              # DEBUG, INFO, WARNING, ERROR
+  file: "logs/ids.log"

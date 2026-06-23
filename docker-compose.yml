@@ -1,0 +1,90 @@
+# ============================================================
+# docker-compose.yml - AI-Powered IDS
+# Chạy: docker-compose up -d
+# ============================================================
+
+version: "3.9"
+
+services:
+
+  # ── PostgreSQL Database ──────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: ids_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: PRJ2_ids
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: phuc
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # Persist dữ liệu DB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d PRJ2_ids"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ids_network
+
+  # ── IDS App (Dashboard) ──────────────────────────────────
+  ids_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ids_dashboard
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy   # Chờ Postgres sẵn sàng rồi mới start
+    environment:
+      # Override DB host: dùng tên service thay vì localhost
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=phuc
+      - DB_NAME=PRJ2_ids
+    ports:
+      - "5001:5001"                  # Dashboard: http://localhost:5001
+    volumes:
+      - ./logs:/app/logs             # Log ra ngoài để xem dễ
+      - ./data/reports:/app/data/reports # Chỉ mount reports (Model AI đã được gói sẵn trong Image)
+      - ./config:/app/config         # Config file (không bake vào image)
+    networks:
+      - ids_network
+    command: ["python3", "main.py", "--mode", "dashboard"]
+
+  # ── IDS Agent (Realtime Monitor) ─────────────────────────
+  ids_agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ids_agent
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=phuc
+      - DB_NAME=PRJ2_ids
+    volumes:
+      - ./logs:/app/logs
+      - ./data/reports:/app/data/reports
+      - ./config:/app/config
+    networks:
+      - ids_network
+    command: ["python3", "main.py", "--mode", "realtime"]
+
+# ── Volumes ──────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+
+# ── Networks ──────────────────────────────────────────────
+networks:
+  ids_network:
+    driver: bridge

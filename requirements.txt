@@ -1,0 +1,13 @@
+paramiko>=3.4.0          # SSH connection to Linux server
+scikit-learn>=1.4.0      # Isolation Forest AI model
+numpy>=1.26.0            # Numerical computing
+pandas>=2.2.0            # Data manipulation
+reportlab>=4.1.0         # PDF generation
+requests>=2.31.0         # Telegram Bot API
+pyyaml>=6.0.1            # Config file parsing
+flask>=3.0.0             # Web dashboard API server
+flask-cors>=4.0.0        # CORS for dashboard
+matplotlib>=3.8.0        # Charts in PDF report
+joblib>=1.3.0            # Save/load AI model
+schedule>=1.2.0          # Periodic task scheduler
+colorama>=0.4.6          # Colored terminal output

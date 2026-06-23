@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered IDS | Threat Intelligence</title>
+    <meta name="description" content="Hệ thống Phát hiện Xâm nhập dựa trên AI - Bảng điều khiển giám sát an ninh realtime">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- ====== SIDEBAR ====== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <div class="logo-text">
+                    <span class="logo-title">AI-IDS</span>
+                    <span class="logo-sub">Security Engine</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+                <span class="nav-icon">◈</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-page="logs" id="nav-logs">
+                <span class="nav-icon">≡</span>
+                <span>System Logs</span>
+            </a>
+            <a href="#" class="nav-item" data-page="blocked" id="nav-blocked">
+                <span class="nav-icon">⊘</span>
+                <span>Blocked IPs</span>
+                <span class="nav-badge" id="blocked-badge">0</span>
+            </a>
+            <a href="#" class="nav-item" data-page="alerts" id="nav-alerts">
+                <span class="nav-icon">◎</span>
+                <span>Telegram Alerts</span>
+            </a>
+            <a href="#" class="nav-item" data-page="reports" id="nav-reports">
+                <span class="nav-icon">▤</span>
+                <span>PDF Reports</span>
+            </a>
+            <a href="#" class="nav-item" data-page="audit" id="nav-audit">
+                <span class="nav-icon">◷</span>
+                <span>Audit Trail</span>
+            </a>
+
+            <!-- decorative filler section to fill empty space -->
+            <div style="margin-top: auto; padding: 20px 8px 10px 8px;">
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase;">System Resources</div>
+                
+                <div style="margin-bottom: 14px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 5px;">
+                        <span>CPU Usage</span>
+                        <span style="font-family: var(--font-mono);">12%</span>
+                    </div>
+                    <div style="height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;">
+                        <div style="width: 12%; height: 100%; background: var(--accent-purple);"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 5px;">
+                        <span>Memory</span>
+                        <span style="font-family: var(--font-mono);">480MB</span>
+                    </div>
+                    <div style="height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;">
+                        <div style="width: 35%; height: 100%; background: var(--accent-cyan);"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="system-status">
+                <div class="status-dot" id="system-status-dot"></div>
+                <span id="system-status-text">Connecting...</span>
+            </div>
+            <div class="sidebar-info">v1.2.0-stable | AI-IDS Engine</div>
+        </div>
+    </aside>
+
+    <!-- ====== MAIN CONTENT ====== -->
+    <main class="main-content" id="main-content">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title" id="page-title">Security Dashboard</h1>
+                <div class="last-update" id="last-update">Đang tải...</div>
+            </div>
+            <div class="topbar-right">
+                <button class="btn btn-danger pulse-btn" id="btn-simulate-attack" onclick="simulateAttack()">
+                    Giả lập Tấn công
+                </button>
+                <button class="btn btn-ai" id="btn-train-ai" onclick="retrainAI()">
+                    Train AI
+                </button>
+                <button class="btn btn-primary" id="btn-refresh" onclick="refreshAll()">
+                    Làm mới
+                </button>
+                <button class="btn btn-success" id="btn-gen-report" onclick="generateReport()">
+                    Xuất PDF
+                </button>
+            </div>
+        </header>
+
+        <!-- ====== PAGE: DASHBOARD ====== -->
+        <section class="page active" id="page-dashboard">
+
+            <!-- STAT CARDS -->
+            <div class="stats-grid">
+                <div class="stat-card card-logs">
+                    <div class="stat-icon">≡</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="stat-logs-today">-</div>
+                        <div class="stat-label">Log hôm nay</div>
+                    </div>
+                    <div class="stat-trend" id="trend-logs">↑</div>
+                </div>
+                <div class="stat-card card-blocks">
+                    <div class="stat-icon">⊘</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="stat-active-blocks">-</div>
+                        <div class="stat-label">IP đang bị chặn</div>
+                    </div>
+                    <div class="stat-trend danger" id="trend-blocks">!</div>
+                </div>
+                <div class="stat-card card-alerts">
+                    <div class="stat-icon">◎</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="stat-alerts-today">-</div>
+                        <div class="stat-label">Cảnh báo hôm nay</div>
+                    </div>
+                    <div class="stat-trend" id="trend-alerts">↑</div>
+                </div>
+                <div class="stat-card card-ai">
+                    <div class="stat-icon">AI</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="stat-ai-status">-</div>
+                        <div class="stat-label">AI Model</div>
+                    </div>
+                    <div class="stat-trend success" id="trend-ai">✓</div>
+                </div>
+            </div>
+
+            <!-- CHARTS ROW -->
+            <div class="charts-row">
+                <div class="chart-card chart-large">
+                    <div class="chart-header">
+                        <h3>Tấn công theo ngày (7 ngày)</h3>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-weekly" height="200"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card chart-small">
+                    <div class="chart-header">
+                        <h3>Top Kẻ tấn công</h3>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-attackers" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT BLOCKS TABLE -->
+            <div class="table-card">
+                <div class="table-header">
+                    <h3>IP mới bị chặn gần đây</h3>
+                    <button class="btn btn-sm" onclick="navigateTo('blocked')">Xem tất cả →</button>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table" id="table-recent-blocks">
+                        <thead>
+                            <tr>
+                                <th>IP Address</th>
+                                <th>Risk Score</th>
+                                <th>Luật vi phạm</th>
+                                <th>Thời gian</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-recent-blocks">
+                            <tr><td colspan="5" class="loading-row">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- AI MODEL INFO PANEL -->
+            <div class="ai-panel">
+                <div class="ai-panel-header">
+                    <div class="ai-panel-title">
+                        <span class="ai-brain">AI</span>
+                        <div>
+                            <strong>Isolation Forest Model</strong>
+                            <span class="ai-sub">Unsupervised Anomaly Detection</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-ai" onclick="retrainAI()" id="btn-train-ai-panel">
+                        Train lại từ DB
+                    </button>
+                </div>
+                <div class="ai-panel-body">
+                    <div class="ai-stat">
+                        <span class="ai-stat-label">Trạng thái</span>
+                        <span class="ai-stat-value" id="ai-info-trained">-</span>
+                    </div>
+                    <div class="ai-stat">
+                        <span class="ai-stat-label">Số cây (n_estimators)</span>
+                        <span class="ai-stat-value" id="ai-info-estimators">-</span>
+                    </div>
+                    <div class="ai-stat">
+                        <span class="ai-stat-label">Contamination</span>
+                        <span class="ai-stat-value" id="ai-info-contamination">-</span>
+                    </div>
+                    <div class="ai-stat">
+                        <span class="ai-stat-label">Risk Threshold</span>
+                        <span class="ai-stat-value" id="ai-info-threshold">-</span>
+                    </div>
+                    <div class="ai-stat">
+                        <span class="ai-stat-label">Model file</span>
+                        <span class="ai-stat-value" id="ai-info-path" style="font-size:10px">-</span>
+                    </div>
+                    <div class="ai-stat">
+                        <span class="ai-stat-label">Feature vector</span>
+                        <span class="ai-stat-value" style="font-size:10px;color:var(--accent-cyan)">[failed_10m, failed_60m, success_ratio, hour, is_weekend, unique_users]</span>
+                    </div>
+                </div>
+                <div class="ai-pipeline">
+                    <div class="ai-step">SSH Log</div>
+                    <div class="ai-arrow">→</div>
+                    <div class="ai-step">PostgreSQL DB</div>
+                    <div class="ai-arrow">→</div>
+                    <div class="ai-step active">Isolation Forest</div>
+                    <div class="ai-arrow">→</div>
+                    <div class="ai-step">Block IP</div>
+                    <div class="ai-arrow">→</div>
+                    <div class="ai-step">Telegram</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== PAGE: SYSTEM LOGS ====== -->
+        <section class="page" id="page-logs">
+            <div class="page-toolbar">
+                <div class="filter-group">
+                    <select id="log-status-filter" class="filter-select" onchange="loadLogs()">
+                        <option value="">Tất cả</option>
+                        <option value="Failed">Failed</option>
+                        <option value="Success">Success</option>
+                        <option value="Invalid">Invalid</option>
+                    </select>
+                    <input type="number" id="log-limit" class="filter-input" value="100"
+                           min="10" max="1000" placeholder="Số dòng">
+                    <button class="btn btn-primary" onclick="loadLogs()">Lọc</button>
+                </div>
+            </div>
+            <div class="table-card">
+                <div class="table-header">
+                    <h3>Nhật ký hệ thống</h3>
+                    <span class="record-count" id="logs-count">0 bản ghi</span>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>IP Address</th>
+                                <th>Username</th>
+                                <th>Status</th>
+                                <th>Thời gian</th>
+                                <th>Raw Log</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-logs">
+                            <tr><td colspan="6" class="loading-row">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== PAGE: BLOCKED IPs ====== -->
+        <section class="page" id="page-blocked">
+            <div class="table-card">
+                <div class="table-header">
+                    <h3>Danh sách IP đang bị chặn</h3>
+                    <span class="record-count" id="blocked-count">0 IP</span>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>IP Address</th>
+                                <th>Risk Score</th>
+                                <th>Luật vi phạm</th>
+                                <th>Thời gian block</th>
+                                <th>Mở khóa lúc</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-blocked">
+                            <tr><td colspan="6" class="loading-row">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== PAGE: TELEGRAM ALERTS ====== -->
+        <section class="page" id="page-alerts">
+            <div class="alerts-container" id="alerts-container">
+                <div class="loading-row">Đang tải cảnh báo...</div>
+            </div>
+        </section>
+
+        <!-- ====== PAGE: REPORTS ====== -->
+        <section class="page" id="page-reports">
+            <div class="report-actions">
+                <div class="date-picker-group">
+                    <label>Chọn ngày xuất báo cáo:</label>
+                    <input type="date" id="report-date" class="filter-input">
+                    <button class="btn btn-success" onclick="generateReport()">Xuất PDF</button>
+                </div>
+            </div>
+            <div class="table-card">
+                <div class="table-header">
+                    <h3>Lịch sử Báo cáo PDF</h3>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Tổng tấn công</th>
+                                <th>IP nguy hiểm cao</th>
+                                <th>File PDF</th>
+                                <th>Tạo lúc</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-reports">
+                            <tr><td colspan="5" class="loading-row">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== PAGE: AUDIT TRAIL ====== -->
+        <section class="page" id="page-audit">
+            <div class="table-card">
+                <div class="table-header">
+                    <h3>Lịch sử hành động Firewall</h3>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Hành động</th>
+                                <th>IP mục tiêu</th>
+                                <th>Mô tả</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-audit">
+                            <tr><td colspan="4" class="loading-row">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ====== TOAST NOTIFICATIONS ====== -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- ====== MODAL: UNBLOCK IP ====== -->
+    <div class="modal-overlay" id="modal-unblock" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Mở khóa IP</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>IP: <strong id="modal-ip"></strong></p>
+                <label>Lý do mở khóa:</label>
+                <input type="text" id="unblock-reason" class="filter-input"
+                       placeholder="VD: False positive, IP hợp lệ của đối tác"
+                       value="False positive - Manual review by Admin">
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal()">Hủy</button>
+                <button class="btn btn-success" onclick="confirmUnblock()">Xác nhận mở khóa</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

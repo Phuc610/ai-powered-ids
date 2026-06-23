@@ -1,0 +1,46 @@
+# ── Python cache ──────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.pyc
+
+# ── Virtual environments ───────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── IDE & OS ──────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+Thumbs.db
+
+# ── Logs (mount volume thay thế) ──────────────────────────
+logs/
+*.log
+
+# ── Data & Models (mount volume thay thế) ─────────────────
+data/ids_database.db
+data/reports/
+
+# ── Git ────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── Docker chính nó ───────────────────────────────────────
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# ── Docs & PDF ────────────────────────────────────────────
+*.pdf
+*.md
+README*
+
+# ── Tests (Giữ lại để tính năng giả lập tấn công hoạt động) ───
+# tests/
